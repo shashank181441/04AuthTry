@@ -117,24 +117,27 @@ const getPosts = async(page=1, limit=20) => {
 }
 
 // Function to create a new post
-const createPost = (content, images, tags) => {
-  // Create a new FormData object to handle multipart form data
-  const formData = new FormData();
-  // Append content to the form data if available
-  if (content) {
-    formData.append("content", content);
-  }
-  // Append each tag to the form data if available
-  tags?.map((tag) => {
-    formData.append("tags", tag)
+const createPost = async ( formData ) => {
+  // const formData = new FormData();
+  // formData.append("content", content);
+  // tags.forEach((tag, ind) => {
+  //   formData.append(`tag[${ind}]`, tag);
+  // });
+  // images.forEach((image, index) => {
+  //   formData.append(`images[${index}]`, image); // Use array notation to send multiple images
+  // });
+  // console.log(formData.content);
+
+
+  await apiClient
+  .post("/social-media/posts", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
   })
-  // Append each image file to the form data if available
-  images?.map((file) => {
-    formData.append("images", file);
-  });
-  // Send a POST request to create a new post with the form data
-  return apiClient.post("/social-media/posts", formData)
-}
+  console.log("resp", resp);
+  return resp
+};
 
 // Function to get a post by its ID
 const getPostById = (postId) => {

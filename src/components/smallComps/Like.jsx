@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { likeOrUnlikePost, likeOrUnlikeComment } from "@/api";
 import LikedNot from "./icons/LikedNot";
 // import "liked.svg"
 
 function Like({ type, id, likedStatus, likeCount, onLike }) {
   const [buttonClicked, setbuttonClicked] = useState(false);
+  const queryClient = useQueryClient();
   const {
     data: likeData,
     error,
@@ -17,13 +18,15 @@ function Like({ type, id, likedStatus, likeCount, onLike }) {
         onLike(id);
       });
     },
-    mutationKey: ["likeData", id, buttonClicked],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["likeData", "postId"] });
+    },
   });
 
   if (likeData) {
     likedStatus = likeData.data.data.isLiked;
   }
-  console.log(typeof likeCount);
+
   let likeMsg;
   if (likedStatus) {
     if (likeCount == 1) {

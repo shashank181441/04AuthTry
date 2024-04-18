@@ -6,18 +6,41 @@ import Comment from "../smallComps/Comment";
 import Like from "../smallComps/Like";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useParams } from "react-router-dom";
+import CreatePostCopied from "../CreatePostCopied";
+import CreatePost from "../CreatePost";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+
+import { Button } from "../ui/button";
+import CarouselDemo from "../testComponents/CarouselDemo";
+import DrawerDemo from "../testComponents/DrawerDemo";
 
 function Home() {
   const dispatch = useDispatch();
   const params = useParams();
   const [commentVisible, setCommentVisible] = useState({});
-  const [refresh, setRefresh] = useState(true);
+  const [addPost, setAddPost] = useState(false);
 
   const handleLike = (postId) => {
     refetch();
   };
-
-  console.log(params);
 
   function getWhosePost() {
     if (!params.username) {
@@ -33,9 +56,12 @@ function Home() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["posts", refresh],
+    queryKey: ["posts"],
     queryFn: () => getWhosePost(1, 20),
   });
+  const togglePostComment = () => {
+    setAddPost(!addPost);
+  };
 
   const toggleComment = (postId) => {
     setCommentVisible({
@@ -48,13 +74,30 @@ function Home() {
   if (error) return <h1 className="text-red-700">{error.message}</h1>;
 
   return (
-    <div>
-      {console.log(posts.data.data.posts)}
+    <div className="place-items-center mx-auto">
+      <div className="flex justify-center my-6 w-full">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              onClick={togglePostComment}
+              className="bg-blue-500 text-white"
+              variant="outline">
+              {addPost ? "Close Post Form" : "Add a new post"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <CreatePostCopied />
+          </PopoverContent>
+        </Popover>
+      </div>
+      {/* 
+      <DrawerDemo /> */}
+
       {posts.data.data.posts.map((post) => (
         <div className="bg-white p-4 rounded-lg shadow-md mb-4" key={post._id}>
           <Link
             to={`/profile/${post.author.account.username}`}
-            className="flex item-start mb-2">
+            className="flex items-start mb-2">
             <img
               src={
                 post.author.account.avatar.url ||
@@ -71,6 +114,7 @@ function Home() {
             </div>
           </Link>
           <p className="text-gray-700 mb-4">{post.content}</p>
+
           <div className="flex flex-wrap -mx-2 mb-4">
             {post.images.map((image, index) => (
               <div
@@ -81,11 +125,14 @@ function Home() {
                     src={image.url || image.localPath?.slice(6)}
                     loading="lazy"
                     alt={`Post Image ${index}`}
-                    className="w-full h-60 rounded-lg object-cover"
+                    className="w-90 h-60 rounded-lg object-cover"
                   />
                 </div>
               </div>
             ))}
+            {console.log(post.images)}
+
+            <DrawerDemo images={post.images} />
           </div>
           <div className="flex items-center mb-2 mx-5">
             <div className="mr-6">
@@ -100,9 +147,9 @@ function Home() {
             </div>
             <div>
               <span
-                className="text-indigo-600"
+                className="text-indigo-600 cursor-pointer"
                 onClick={() => toggleComment(post._id)}>
-                {post.comments} <button>Comment</button>
+                {post.comments} Comments
               </span>
             </div>
           </div>

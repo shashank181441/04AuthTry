@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { addComment, getPostComments } from "@/api";
 
 function Comment({ postId }) {
   const [commentAdd, setCommentAdd] = useState("");
+  const queryClient = useQueryClient();
   const {
     data: comments,
     isLoading,
@@ -22,10 +23,13 @@ function Comment({ postId }) {
     mutate,
   } = useMutation({
     mutationFn: () => {
-      console.log("hello");
       return addComment(postId, {
         content: commentAdd,
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["comments", "postId"] });
+      setCommentAdd(""); // Clear the form after submission
     },
   });
 
@@ -36,24 +40,31 @@ function Comment({ postId }) {
   if (mutationError) return <h1>Error: {mutationError.message}</h1>;
 
   return (
-    <div>
-      {console.log(dataFromCommentAdd)}
+    <div className="mt-4">
       {comments.data.data.comments.map((comment) => (
-        <div key={comment._id}>
-          <b>{`${comment.author.firstName} ${comment.author.firstName}`}</b>{" "}
-          <br /> {comment.content}{" "}
+        <div key={comment._id} className="mb-4">
+          <b>{`${comment.author.firstName} ${comment.author.lastName}`}</b>{" "}
+          <br /> {comment.content}
         </div>
       ))}
-      <input
-        type="text"
-        value={commentAdd}
-        onChange={(e) => setCommentAdd(e.target.value)}
-      />
-      <button
-        className="bg-blue-600 p-4 rounded-md"
-        onClick={() => mutate(commentAdd)}>
-        Post Comment
-      </button>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          mutate(commentAdd);
+        }}>
+        <input
+          type="text"
+          value={commentAdd}
+          onChange={(e) => setCommentAdd(e.target.value)}
+          className="mr-2 border rounded p-2 w-[30rem]"
+          placeholder="Add a comment..."
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+          Post Comment
+        </button>
+      </form>
     </div>
   );
 }
